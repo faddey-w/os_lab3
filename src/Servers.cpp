@@ -69,15 +69,31 @@ void Server::listen_forever() {
     }
 }
 
+Server::~Server() {
+    if (listed_sock_fd) close(listed_sock_fd);
+}
 
-bool AuthServer::parse_cred_pair(const std::string &line,
-                                 std::string username, std::string &password) {
-    std::stringstream iss(line);
-    std::getline(iss, username, ' ');
-    if (!iss) {
+
+std::string trim(const std::string& line) {
+    unsigned long first_no_space = line.find_first_not_of(" \n\t");
+    unsigned long last_no_space = line.find_last_not_of(" \n\t");
+    return line.substr(first_no_space, last_no_space-first_no_space+1);
+}
+
+
+bool AuthServer::parse_cred_pair(std::string line,
+                                 std::string &username, std::string &password) {
+    line = trim(line);
+    unsigned long first_space = line.find_first_of(" \n\t");
+    if (first_space == -1) {
         return false;
     }
-    std::getline(iss, password, ' ');
+    username = line.substr(0, first_space);
+    line = line.substr(first_space);
+    password = trim(line);
+    if (password.find_first_of(" \n\t") != -1) {
+        return false;
+    }
     return true;
 }
 
@@ -95,10 +111,6 @@ AuthServer::AuthServer(const std::string &auth_file_path, int port) : Server(por
             throw std::runtime_error("Lines in auto file should have two words");
         }
         credentials[username] = password;
-    }
-
-    for (auto &item : credentials) {
-        std::cout << item.first << " :: " << item.second << std::endl;
     }
 
 }

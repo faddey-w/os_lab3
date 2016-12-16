@@ -34,6 +34,8 @@ public:
 
     void listen_forever();
 
+    virtual ~Server();
+
 };
 
 
@@ -41,16 +43,14 @@ class AuthServer : public Server {
 
     std::map<std::string, std::string> credentials;
 
-    bool parse_cred_pair(const std::string& line,
-                         std::string username, std::string& password);
+    bool parse_cred_pair(std::string line,
+                         std::string& username, std::string& password);
 
 
 public:
     AuthServer(const std::string& auth_file_path, int port);
 
     std::string process(const std::string& request);
-
-
 };
 
 
